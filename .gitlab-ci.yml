@@ -1,0 +1,29 @@
+stages:
+  - compile
+  - test
+  - environment
+
+unit_tests:
+  stage: test
+  script:
+    - npm install
+    - npm test
+  dependencies:
+    - compile
+job_provision:
+  stage: environment
+  script:
+    - ansible-playbook playbook-app.yml
+deploy:
+  stage: deploy
+  script:
+    - ansible-playbook playbook-deploy.yml
+  variables:
+    ANSIBLE_HOST_KEY_CHECKING: "False"
+acceptance_tests:
+  stage: test
+  image: postman/newman:alpine
+  script:
+    - newman run postman-tests/TodoApp-Vagrant.postman_collection.json -e postman-tests/TodoApp-Vagrant.postman_environment.json
+  variables:
+    HOST_IP: "192.168.56.8"
